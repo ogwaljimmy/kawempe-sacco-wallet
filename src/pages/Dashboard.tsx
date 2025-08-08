@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Wallet, 
   TrendingUp, 
@@ -16,6 +17,12 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  
+  const userDisplayName = user?.user_metadata?.firstName 
+    ? `${user.user_metadata.firstName}`
+    : user?.email?.split('@')[0] || 'User';
+
   // Mock data - replace with real data when Supabase is connected
   const savingsData = [
     { month: 'Jan', amount: 500000 },
@@ -46,27 +53,28 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-6 py-4">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Welcome back, John!</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome back, {userDisplayName}!</h1>
               <p className="text-muted-foreground">Here's your financial overview</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button variant="outline" size="sm" className="hidden sm:flex">
                 <PlusCircle className="w-4 h-4 mr-2" />
                 New Transaction
               </Button>
-              <Button variant="hero">
+              <Button variant="hero" size="sm">
                 <CreditCard className="w-4 h-4 mr-2" />
-                Apply for Loan
+                <span className="hidden sm:inline">Apply for Loan</span>
+                <span className="sm:hidden">Apply</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="hover:shadow-soft transition-shadow">
@@ -75,7 +83,7 @@ const Dashboard = () => {
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">UGX 1,800,000</div>
+              <div className="text-xl sm:text-2xl font-bold text-primary">UGX 1,800,000</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-success">+12.5%</span> from last month
               </p>
@@ -88,7 +96,7 @@ const Dashboard = () => {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">UGX 500,000</div>
+              <div className="text-xl sm:text-2xl font-bold text-warning">UGX 500,000</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-success">-8.2%</span> remaining balance
               </p>
@@ -101,7 +109,7 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">UGX 125,000</div>
+              <div className="text-xl sm:text-2xl font-bold text-success">UGX 125,000</div>
               <p className="text-xs text-muted-foreground">
                 7% annual return rate
               </p>
@@ -114,7 +122,7 @@ const Dashboard = () => {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">850</div>
+              <div className="text-xl sm:text-2xl font-bold text-primary">850</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-success">Excellent</span> rating
               </p>
@@ -130,7 +138,7 @@ const Dashboard = () => {
               <CardDescription>Your savings accumulation over time</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={savingsData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -154,7 +162,7 @@ const Dashboard = () => {
               <CardDescription>Monthly deposits vs withdrawals</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={transactionData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
@@ -176,13 +184,13 @@ const Dashboard = () => {
                 <CardTitle>Recent Transactions</CardTitle>
                 <CardDescription>Your latest financial activities</CardDescription>
               </div>
-              <Button variant="outline" size="sm">View All</Button>
+              <Button variant="outline" size="sm" className="hidden sm:flex">View All</Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
+                <div key={transaction.id} className="flex items-center justify-between p-3 sm:p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                       transaction.type === 'deposit' ? 'bg-success/10' :
@@ -197,8 +205,8 @@ const Dashboard = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <p className="font-medium text-foreground text-sm sm:text-base">{transaction.description}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {transaction.date}
                       </p>

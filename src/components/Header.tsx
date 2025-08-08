@@ -2,9 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Menu } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-soft">
@@ -39,16 +41,26 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <Link to="/login">
-              <Button variant="ghost">
-                Login
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button variant="hero">
-                Join SACCO
-              </Button>
-            </Link>
+            {user ? (
+              <Link to="/dashboard">
+                <Button variant="hero">
+                  Go to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="hero">
+                    Join SACCO
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -79,16 +91,26 @@ const Header = () => {
                 Contact
               </a>
               <div className="flex flex-col gap-2 mt-4">
-                <Link to="/login">
-                  <Button variant="ghost" className="justify-start w-full">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button variant="hero" className="justify-start w-full">
-                    Join SACCO
-                  </Button>
-                </Link>
+                {user ? (
+                  <Link to="/dashboard">
+                    <Button variant="hero" className="justify-start w-full">
+                      Go to Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button variant="ghost" className="justify-start w-full">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/signup">
+                      <Button variant="hero" className="justify-start w-full">
+                        Join SACCO
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>

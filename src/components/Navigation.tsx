@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { 
   Wallet, 
@@ -18,6 +20,7 @@ import { cn } from "@/lib/utils";
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -28,10 +31,24 @@ const Navigation = () => {
 
   const isActive = (href: string) => location.pathname === href;
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  };
+
+  const userDisplayName = user?.user_metadata?.firstName 
+    ? `${user.user_metadata.firstName} ${user.user_metadata.lastName}`
+    : user?.email?.split('@')[0] || 'User';
+
+  const userMemberId = user?.user_metadata?.memberId || 'N/A';
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 z-50">
         <div className="flex flex-col flex-grow bg-card border-r border-border overflow-y-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
@@ -73,8 +90,8 @@ const Navigation = () => {
                 <User className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">John Doe</p>
-                <p className="text-xs text-muted-foreground">Member ID: KS-2024-001</p>
+                <p className="text-sm font-medium text-foreground">{userDisplayName}</p>
+                <p className="text-xs text-muted-foreground">Member ID: {userMemberId}</p>
               </div>
             </div>
             
@@ -83,7 +100,12 @@ const Navigation = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="ghost" size="sm" className="w-full justify-start text-warning hover:text-warning">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full justify-start text-warning hover:text-warning"
+                onClick={handleSignOut}
+              >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
               </Button>
@@ -95,7 +117,7 @@ const Navigation = () => {
       {/* Mobile Navigation */}
       <div className="lg:hidden">
         {/* Mobile Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border sticky top-0 z-40">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
               <Wallet className="w-5 h-5 text-white" />
@@ -163,8 +185,8 @@ const Navigation = () => {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">John Doe</p>
-                    <p className="text-xs text-muted-foreground">KS-2024-001</p>
+                    <p className="text-sm font-medium text-foreground">{userDisplayName}</p>
+                    <p className="text-xs text-muted-foreground">{userMemberId}</p>
                   </div>
                 </div>
                 
@@ -173,7 +195,12 @@ const Navigation = () => {
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
                   </Button>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-warning hover:text-warning">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-start text-warning hover:text-warning"
+                    onClick={handleSignOut}
+                  >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>

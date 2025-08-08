@@ -1,24 +1,65 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Wallet, Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
+import { DEMO_ACCOUNTS } from "@/lib/supabase";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase authentication
-    console.log("Login attempt:", { email, password });
+    setLoading(true);
+
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast.error("Login failed: " + error.message);
+      } else {
+        toast.success("Welcome back!");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleDemoLogin = async (demoAccount: typeof DEMO_ACCOUNTS[0]) => {
+    setEmail(demoAccount.email);
+    setPassword(demoAccount.password);
+    setLoading(true);
+
+    try {
+      const { error } = await signIn(demoAccount.email, demoAccount.password);
+      
+      if (error) {
+        toast.error("Demo login failed: " + error.message);
+      } else {
+        toast.success(`Welcome back, ${demoAccount.profile.firstName}!`);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -33,6 +74,28 @@ const Login = () => {
           </div>
         </div>
 
+        {/* Demo Accounts Alert */}
+        <Alert className="mb-6">
+          <AlertDescription>
+            <strong>Demo Accounts Available:</strong>
+            <div className="mt-2 space-y-1 text-sm">
+              {DEMO_ACCOUNTS.map((account, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span>{account.profile.firstName} {account.profile.lastName} ({account.profile.occupation})</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDemoLogin(account)}
+                    disabled={loading}
+                    className="ml-2"
+                  >
+                    Try
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </AlertDescription>
+        </Alert>
         <Card className="shadow-strong">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
@@ -50,6 +113,7 @@ const Login = () => {
                   placeholder="member@kawempesacco.ug"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -63,6 +127,7 @@ const Login = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
                     required
                   />
                   <Button
@@ -71,6 +136,7 @@ const Login = () => {
                     size="icon"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -83,7 +149,7 @@ const Login = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <input type="checkbox" id="remember" className="rounded" />
+                  <input type="checkbox" id="remember" className="rounded" disabled={loading} />
                   <Label htmlFor="remember" className="text-sm">Remember me</Label>
                 </div>
                 <Link to="/forgot-password" className="text-sm text-primary hover:underline">
@@ -91,8 +157,8 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full" variant="hero">
-                Sign In
+              <Button type="submit" className="w-full" variant="hero" disabled={loading}>
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 

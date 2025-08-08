@@ -1,15 +1,20 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wallet, Eye, EyeOff } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -21,10 +26,44 @@ const Signup = () => {
     confirmPassword: ""
   });
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase authentication
-    console.log("Signup attempt:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        nationalId: formData.nationalId,
+        occupation: formData.occupation,
+        memberId: `KS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(3, '0')}`
+      };
+
+      const { error } = await signUp(formData.email, formData.password, userData);
+      
+      if (error) {
+        toast.error("Registration failed: " + error.message);
+      } else {
+        toast.success("Account created successfully! Please check your email for verification.");
+        navigate("/login");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -32,7 +71,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -64,6 +103,7 @@ const Signup = () => {
                     placeholder="John"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -75,6 +115,7 @@ const Signup = () => {
                     placeholder="Doe"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -88,6 +129,7 @@ const Signup = () => {
                   placeholder="john.doe@example.com"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
+                  disabled={loading}
                   required
                 />
               </div>
@@ -100,6 +142,7 @@ const Signup = () => {
                     placeholder="+256 700 123 456"
                     value={formData.phone}
                     onChange={(e) => handleInputChange("phone", e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -111,6 +154,7 @@ const Signup = () => {
                     placeholder="CM12345678901234"
                     value={formData.nationalId}
                     onChange={(e) => handleInputChange("nationalId", e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -118,7 +162,7 @@ const Signup = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="occupation">Occupation</Label>
-                <Select onValueChange={(value) => handleInputChange("occupation", value)}>
+                <Select onValueChange={(value) => handleInputChange("occupation", value)} disabled={loading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your occupation" />
                   </SelectTrigger>
@@ -145,6 +189,7 @@ const Signup = () => {
                       placeholder="Create a strong password"
                       value={formData.password}
                       onChange={(e) => handleInputChange("password", e.target.value)}
+                      disabled={loading}
                       required
                     />
                     <Button
@@ -153,6 +198,7 @@ const Signup = () => {
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -172,6 +218,7 @@ const Signup = () => {
                       placeholder="Confirm your password"
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      disabled={loading}
                       required
                     />
                     <Button
@@ -180,6 +227,7 @@ const Signup = () => {
                       size="icon"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={loading}
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -192,7 +240,7 @@ const Signup = () => {
               </div>
 
               <div className="flex items-center space-x-2">
-                <input type="checkbox" id="terms" className="rounded" required />
+                <input type="checkbox" id="terms" className="rounded" disabled={loading} required />
                 <Label htmlFor="terms" className="text-sm">
                   I agree to the{" "}
                   <Link to="/terms" className="text-primary hover:underline">
@@ -205,8 +253,8 @@ const Signup = () => {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full" variant="hero">
-                Create Account
+              <Button type="submit" className="w-full" variant="hero" disabled={loading}>
+                {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
